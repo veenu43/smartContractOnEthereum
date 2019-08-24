@@ -2,20 +2,22 @@ App = {
   web3Provider: null,
   contracts: {},
 
-  init: async function() {
+  init: async function () {
     // Load pets.
-    $.getJSON('../pets.json', function(data) {
+    $.getJSON('../pets.json', function (data) {
       var petsRow = $('#petsRow');
       var petTemplate = $('#petTemplate');
 
-      for (i = 0; i < data.length; i ++) {
+      for (i = 0; i < data.length; i++) {
         petTemplate.find('.panel-title').text(data[i].name);
         petTemplate.find('img').attr('src', data[i].picture);
         petTemplate.find('.pet-breed').text(data[i].breed);
         petTemplate.find('.pet-age').text(data[i].age);
         petTemplate.find('.pet-location').text(data[i].location);
         petTemplate.find('.btn-adopt').attr('data-id', data[i].id);
-        $('.panel-pet').eq(i).find('.btn-release').text('Release').attr('disabled',true);
+        petTemplate.find('.btn-release').attr('data-id', data[i].id).attr('disabled', true);
+
+
         petsRow.append(petTemplate.html());
       }
     });
@@ -23,105 +25,130 @@ App = {
     return await App.initWeb3();
   },
 
-  initWeb3: async function() {
+  initWeb3: async function () {
+
     if (window.ethereum) {
-        App.web3Provider = window.ethereum;
-        try {
-            await window.ethereum.enable();
-        } catch (error) {
-            console.error("User denied account access")
-        }
+      App.web3Provider = window.ethereum;
+      try {
+        await window.ethereum.enable();
+      } catch (error) {
+        console.error("User denied account access")
+      }
     }
     else if (window.web3) {
-        App.web3Provider = window.web3.currentProvider;
+      App.web3Provider = window.web3.currentProvider;
     }
     else {
-        App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+      App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
     }
     web3 = new Web3(App.web3Provider);
+
     return App.initContract();
   },
 
-  initContract: function() {
-    $.getJSON('Adoption.json', function(data) {
-        var AdoptionArtifact = data;
-        App.contracts.Adoption = TruffleContract(AdoptionArtifact);
-        App.contracts.Adoption.setProvider(App.web3Provider);
-        return App.markAdopted();
+  initContract: function () {
+
+    $.getJSON('Adoption.json', function (data) {
+      var AdoptionArtifact = data;
+      App.contracts.Adoption = TruffleContract(AdoptionArtifact);
+      App.contracts.Adoption.setProvider(App.web3Provider);
+      return App.markAdopted();
     });
 
     return App.bindEvents();
   },
 
-  bindEvents: function() {
+  bindEvents: function () {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
     $(document).on('click', '.btn-release', App.handleRelease);
   },
 
-  markAdopted: function(adopters, account) {
+  markAdopted: function (adopters, account) {
+
     var adoptionInstance;
-    App.contracts.Adoption.deployed().then(function(instance) {
-        adoptionInstance = instance;
-        return adoptionInstance.getAdopters.call();
-    }).then(function(adopters) {
-        for (i = 0; i < adopters.length; i++) {
-            if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
-                $('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled',true);
-                $('.panel-pet').eq(i).find('.btn-release').text('Release').attr('disabled',false);
-            }else if(adopters[i] == '0x0000000000000000000000000000000000000000'){
-                $('.panel-pet').eq(i).find('.btn-adopt').text('Adopt').attr('disabled',false);
-                $('.panel-pet').eq(i).find('.btn-release').text('Available').attr('disabled',true);
-            }
+    App.contracts.Adoption.deployed().then(function (instance) {
+      adoptionInstance = instance;
+      return adoptionInstance.getAdopters.call();
+    }).then(function (adopters) {
+      for (i = 0; i < adopters.length; i++) {
+        if (adopters[i] !== '0x0000000000000000000000000000000000000000') {
+          $('.panel-pet').eq(i).find('.btn-adopt').text('Adopted').attr('disabled', true);
+          $('.panel-pet').eq(i).find('.btn-release').text('Release').attr('disabled', false);
         }
-    }).catch(function(err) {
-        console.log(err.message);
+      }
+    }).catch(function (err) {
+      console.log(err.message);
     });
   },
 
-  handleAdopt: function(event) {
+  handleAdopt: function (event) {
     event.preventDefault();
+
     var petId = parseInt($(event.target).data('id'));
+
+
     var adoptionInstance;
-    web3.eth.getAccounts(function(error, accounts) {
-        if (error) {
-            console.log(error);
-        }
-    var account = accounts[0];
-    App.contracts.Adoption.deployed().then(function(instance) {
+    web3.eth.getAccounts(function (error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+      var account = accounts[0];
+      App.contracts.Adoption.deployed().then(function (instance) {
         adoptionInstance = instance;
-        return adoptionInstance.adopt(petId, {from: account});
-    }).then(function(result) {
+        return adoptionInstance.adopt(petId, { from: account });
+      }).then(function (result) {
         return App.markAdopted();
-    }).catch(function(err) {
+      }).catch(function (err) {
         console.log(err.message);
-        });
+      });
     });
   },
 
-  handleRelease: function(event) {
-      event.preventDefault();
-      var petId = parseInt($(event.target).data('id'));
-      var adoptionInstance;
-      web3.eth.getAccounts(function(error, accounts) {
-          if (error) {
-              console.log(error);
-          }
+  markReleased: function (adopters, account) {
+
+    var adoptionInstance;
+    App.contracts.Adoption.deployed().then(function (instance) {
+      adoptionInstance = instance;
+      return adoptionInstance.getAdopters.call();
+    }).then(function (adopters) {
+      for (i = 0; i < adopters.length; i++) {
+        if (adopters[i] === '0x0000000000000000000000000000000000000000') {
+          $('.panel-pet').eq(i).find('.btn-adopt').text('Adopt').attr('disabled', false);
+          $('.panel-pet').eq(i).find('.btn-release').text('Released').attr('disabled', true);
+        }
+      }
+    }).catch(function (err) {
+      console.log(err.message);
+    });
+  },
+
+  handleRelease: function (event) {
+    event.preventDefault();
+
+    var petId = parseInt($(event.target).data('id'));
+
+
+    var adoptionInstance;
+    web3.eth.getAccounts(function (error, accounts) {
+      if (error) {
+        console.log(error);
+      }
       var account = accounts[0];
-      App.contracts.Adoption.deployed().then(function(instance) {
-          adoptionInstance = instance;
-          return adoptionInstance.release(petId, {from: account});
-      }).then(function(result) {
-          return App.markAdopted();
-      }).catch(function(err) {
-          console.log(err.message);
-          });
+      App.contracts.Adoption.deployed().then(function (instance) {
+        adoptionInstance = instance;
+        return adoptionInstance.release(petId, { from: account });
+      }).then(function (result) {
+        return App.markReleased();
+      }).catch(function (err) {
+        console.log(err.message);
       });
-    }
+    });
+  }
 
 };
 
-$(function() {
-  $(window).load(function() {
+$(function () {
+  $(window).load(function () {
     App.init();
   });
 });

@@ -24,4 +24,13 @@ contract TestAdoption {
         address[16] memory adopters = adoption.getAdopters();
         Assert.equal(adopters[expectedPetId], expectedAdopter, "Owner of the expected pet should be this contract");
     }
+
+    function testUserCanReleasePet() public {
+        uint returnedId = adoption.release(expectedPetId);
+        Assert.equal(returnedId, expectedPetId, "Adoption of the expected pet should match what is returned.");
+    }
+    function testAddressReleaseByPetId() public {
+        address[16] memory adopters = adoption.getAdopters();
+        Assert.equal(adopters[expectedPetId], address(0x0), "Owner of the expected pet should be this contract");
+    }
 }
