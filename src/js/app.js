@@ -26,23 +26,8 @@ App = {
   },
 
   initWeb3: async function () {
-
-    if (window.ethereum) {
-      App.web3Provider = window.ethereum;
-      try {
-        await window.ethereum.enable();
-      } catch (error) {
-        console.error("User denied account access")
-      }
-    }
-    else if (window.web3) {
-      App.web3Provider = window.web3.currentProvider;
-    }
-    else {
       App.web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
-    }
     web3 = new Web3(App.web3Provider);
-
     return App.initContract();
   },
 
@@ -50,6 +35,7 @@ App = {
 
     $.getJSON('Adoption.json', function (data) {
       var AdoptionArtifact = data;
+
       App.contracts.Adoption = TruffleContract(AdoptionArtifact);
       App.contracts.Adoption.setProvider(App.web3Provider);
       return App.markAdopted();
@@ -68,6 +54,10 @@ App = {
     var adoptionInstance;
     App.contracts.Adoption.deployed().then(function (instance) {
       adoptionInstance = instance;
+      //var owner =0x391b35602aeaFb626d0FfB0D19e2e1737810E7D7;
+     // var partner=0x0891f11258773f9624FaA5F37E46A8284ec2510C;
+      //adoptionInstance.owner(owner);
+     // adoptionInstance.partner(partner);
       return adoptionInstance.getAdopters.call();
     }).then(function (adopters) {
       for (i = 0; i < adopters.length; i++) {
@@ -93,11 +83,16 @@ App = {
         console.log(error);
       }
       var account = accounts[0];
+      var collectionAddress = accounts[2];
+      var partnerAddress = accounts[3];
+       var etherValue = 1000000000000000000;
       App.contracts.Adoption.deployed().then(function (instance) {
         adoptionInstance = instance;
-        return adoptionInstance.adopt(petId, { from: account });
+        return adoptionInstance.adopt(petId,etherValue,{ from: account , value:etherValue});
       }).then(function (result) {
+        adoptionInstance.withdraw(collectionAddress,partnerAddress,{ from: account});
         return App.markAdopted();
+
       }).catch(function (err) {
         console.log(err.message);
       });
