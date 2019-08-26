@@ -4,9 +4,27 @@ contract Adoption {
     address[16] public adopters;
     mapping(address => uint) public amounts;
     uint public totalCollected;
+    bool isStopped = false;
 
+    modifier stoppedInEmergency {
+        require(!isStopped);
+       _;
+    }
 
-    function adopt(uint petId,uint256 amount) payable public {
+    modifier onlyAuthorized {
+        // Check for authorization of msg.sender here
+       _;
+    }
+
+    function stopContract() public onlyAuthorized {
+        isStopped = true;
+    }
+
+    function resumeContract() public onlyAuthorized {
+        isStopped = false;
+    }
+
+    function adopt(uint petId,uint256 amount) payable public stoppedInEmergency {
         require(msg.value==amount);
         require(petId >= 0 && petId <= 15);
         adopters[petId] = msg.sender;

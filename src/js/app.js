@@ -6,6 +6,7 @@ App = {
     // Load pets.
     $.getJSON('../pets.json', function (data) {
       var petsRow = $('#petsRow');
+      var emgergency = $('#emgergency');
       var petTemplate = $('#petTemplate');
 
       for (i = 0; i < data.length; i++) {
@@ -47,6 +48,8 @@ App = {
   bindEvents: function () {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
     $(document).on('click', '.btn-release', App.handleRelease);
+    $(document).on('click', '.btn-stop', App.handleStop);
+    $(document).on('click', '.btn-start', App.handleStart);
   },
 
   markAdopted: function (adopters, account) {
@@ -54,10 +57,7 @@ App = {
     var adoptionInstance;
     App.contracts.Adoption.deployed().then(function (instance) {
       adoptionInstance = instance;
-      //var owner =0x391b35602aeaFb626d0FfB0D19e2e1737810E7D7;
-     // var partner=0x0891f11258773f9624FaA5F37E46A8284ec2510C;
-      //adoptionInstance.owner(owner);
-     // adoptionInstance.partner(partner);
+
       return adoptionInstance.getAdopters.call();
     }).then(function (adopters) {
       for (i = 0; i < adopters.length; i++) {
@@ -85,7 +85,7 @@ App = {
       var account = accounts[0];
       var collectionAddress = accounts[2];
       var partnerAddress = accounts[3];
-       var etherValue = 1000000000000000000;
+      var etherValue = 1000000000000000000;
       App.contracts.Adoption.deployed().then(function (instance) {
         adoptionInstance = instance;
         return adoptionInstance.adopt(petId,etherValue,{ from: account , value:etherValue});
@@ -134,6 +134,46 @@ App = {
         return adoptionInstance.release(petId, { from: account });
       }).then(function (result) {
         return App.markReleased();
+      }).catch(function (err) {
+        console.log(err.message);
+      });
+    });
+  },
+
+handleStop: function (event) {
+    event.preventDefault();
+    var adoptionInstance;
+    web3.eth.getAccounts(function (error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+      var account = accounts[0];
+      App.contracts.Adoption.deployed().then(function (instance) {
+        adoptionInstance = instance;
+        return adoptionInstance.stopContract({ from: account });
+      }).then(function (result) {
+
+      }).catch(function (err) {
+        console.log(err.message);
+      });
+    });
+  },
+
+
+
+handleStart: function (event) {
+    event.preventDefault();
+    var adoptionInstance;
+    web3.eth.getAccounts(function (error, accounts) {
+      if (error) {
+        console.log(error);
+      }
+      var account = accounts[0];
+      App.contracts.Adoption.deployed().then(function (instance) {
+        adoptionInstance = instance;
+        return adoptionInstance.resumeContract({ from: account });
+      }).then(function (result) {
+
       }).catch(function (err) {
         console.log(err.message);
       });
