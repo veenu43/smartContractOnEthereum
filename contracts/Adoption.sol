@@ -1,10 +1,23 @@
 pragma solidity ^0.5.0;
 
+import "./EternalStorage.sol";
+
+
 contract Adoption {
     address[16] public adopters;
     mapping(address => uint) public amounts;
     uint public totalCollected;
     bool isStopped = false;
+
+    EternalStorage private _storage;
+
+    constructor() public{
+        _storage = new EternalStorage();
+    }
+
+    function isContractStopped() public returns (bool){
+        return isStopped;
+    }
 
     modifier stoppedInEmergency {
         require(!isStopped);
@@ -25,16 +38,17 @@ contract Adoption {
     }
 
     function adopt(uint petId,uint256 amount) payable public stoppedInEmergency {
-        require(msg.value==amount);
+        require(msg.value != 0, 'invalid amount');
         require(petId >= 0 && petId <= 15);
         adopters[petId] = msg.sender;
+        _storage.addPetID(msg.sender, petId);
         amounts[msg.sender] += msg.value;
         totalCollected += msg.value;
     }
 
-     function release(uint petId) public returns (uint) {
+     function release(uint petId) public stoppedInEmergency returns (uint) {
         require(petId >= 0 && petId <= 15);
-        delete adopters[petId];
+         _storage.removePetID(petId);
         return petId;
     }
 

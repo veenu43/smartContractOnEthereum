@@ -48,8 +48,6 @@ App = {
   bindEvents: function () {
     $(document).on('click', '.btn-adopt', App.handleAdopt);
     $(document).on('click', '.btn-release', App.handleRelease);
-    $(document).on('click', '.btn-stop', App.handleStop);
-    $(document).on('click', '.btn-start', App.handleStart);
   },
 
   markAdopted: function (adopters, account) {
@@ -138,48 +136,7 @@ App = {
         console.log(err.message);
       });
     });
-  },
-
-handleStop: function (event) {
-    event.preventDefault();
-    var adoptionInstance;
-    web3.eth.getAccounts(function (error, accounts) {
-      if (error) {
-        console.log(error);
-      }
-      var account = accounts[0];
-      App.contracts.Adoption.deployed().then(function (instance) {
-        adoptionInstance = instance;
-        return adoptionInstance.stopContract({ from: account });
-      }).then(function (result) {
-
-      }).catch(function (err) {
-        console.log(err.message);
-      });
-    });
-  },
-
-
-
-handleStart: function (event) {
-    event.preventDefault();
-    var adoptionInstance;
-    web3.eth.getAccounts(function (error, accounts) {
-      if (error) {
-        console.log(error);
-      }
-      var account = accounts[0];
-      App.contracts.Adoption.deployed().then(function (instance) {
-        adoptionInstance = instance;
-        return adoptionInstance.resumeContract({ from: account });
-      }).then(function (result) {
-
-      }).catch(function (err) {
-        console.log(err.message);
-      });
-    });
   }
-
 };
 
 $(function () {
