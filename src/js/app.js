@@ -86,9 +86,9 @@ App = {
       var etherValue = web3.toWei(1, 'ether');
       App.contracts.Adoption.deployed().then(function (instance) {
         adoptionInstance = instance;
-        return adoptionInstance.adopt(petId,etherValue,{ from: account , value:etherValue});
+        var x = adoptionInstance.adopt(petId,etherValue,{ from: account , value:etherValue});
+        return adoptionInstance.withdraw(collectionAddress,partnerAddress,{ from: account});
       }).then(function (result) {
-        adoptionInstance.withdraw(collectionAddress,partnerAddress,{ from: account});
         return App.markAdopted();
 
       }).catch(function (err) {
