@@ -4,7 +4,6 @@ import "./EternalStorage.sol";
 
 
 contract Adoption {
-    address[16] public adopters;
     mapping(address => uint) public amounts;
     uint public totalCollected;
     bool isStopped = false;
@@ -40,7 +39,6 @@ contract Adoption {
     function adopt(uint petId,uint256 amount) payable public stoppedInEmergency {
         require(msg.value != 0, 'invalid amount');
         require(petId >= 0 && petId <= 15);
-        adopters[petId] = msg.sender;
         _storage.addPetID(msg.sender, petId);
         amounts[msg.sender] += msg.value;
         totalCollected += msg.value;
@@ -61,6 +59,6 @@ contract Adoption {
 
 
     function getAdopters() public view returns (address[16]memory) {
-        return adopters;
+        return _storage.getAdopters();
     }
 }

@@ -83,7 +83,7 @@ App = {
       var account = accounts[0];
       var collectionAddress = accounts[2];
       var partnerAddress = accounts[3];
-      var etherValue = 1000000000000000000;
+      var etherValue = web3.toWei(1, 'ether');
       App.contracts.Adoption.deployed().then(function (instance) {
         adoptionInstance = instance;
         return adoptionInstance.adopt(petId,etherValue,{ from: account , value:etherValue});
