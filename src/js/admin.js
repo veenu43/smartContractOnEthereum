@@ -22,7 +22,28 @@ App = {
       return true;
     });
 
-
+        web3.eth.getAccounts(function (error, accounts) {
+          if (error) {
+            console.log(error);
+          }
+          var account = accounts[0];
+          App.contracts.Adoption.deployed().then(function (instance) {
+            abcoinInstance = instance;
+            return abcoinInstance.isContractStopped({ from: account });
+          }).then(function (result) {
+            console.log('Is contract stopped', `${result}`);
+            if(`${result}` == 1){
+                $('#adminScreen').find('.btn-stop').attr('disabled', true);
+                $('#adminScreen').find('.btn-start').attr('disabled', false);
+            }else{
+                $('#adminScreen').find('.btn-stop').attr('disabled', false);
+                $('#adminScreen').find('.btn-start').attr('disabled', true);
+            }
+            return true;
+          }).catch(function (err) {
+            console.log(err.message);
+          });
+        });
 
     $('#adminScreen').find('.btn-stop').attr('disabled', false);
     $('#adminScreen').find('.btn-start').attr('disabled', false);

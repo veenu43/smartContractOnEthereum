@@ -14,8 +14,8 @@ contract Adoption {
         _storage = new EternalStorage();
     }
 
-    function isContractStopped() public returns (bool){
-        return isStopped;
+    function isContractStopped() public view returns (uint){
+        return isStopped == true ? 1 : 0;
     }
 
     modifier stoppedInEmergency {
