@@ -87,10 +87,9 @@ App = {
       App.contracts.Adoption.deployed().then(function (instance) {
         adoptionInstance = instance;
         var x = adoptionInstance.adopt(petId,etherValue,{ from: account , value:etherValue});
-        return adoptionInstance.withdraw(collectionAddress,partnerAddress,{ from: account});
+        return true;
       }).then(function (result) {
         return App.markAdopted();
-
       }).catch(function (err) {
         console.log(err.message);
       });
